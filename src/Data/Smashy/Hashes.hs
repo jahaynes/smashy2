@@ -2,7 +2,6 @@ module Data.Smashy.Hashes where
 
 import Data.Smashy.Types
 
-import Control.Applicative                              ((<$>))
 import Control.Concurrent.STM                           (readTVar)
 import Control.Monad                                    (when)
 import Control.Monad.STM                                (STM, atomically, retry)
@@ -13,6 +12,10 @@ import Data.Digest.XXHash                               (xxHash')
 import qualified Data.Vector.Storable.Mutable       as VM
 import qualified STMContainers.Set                  as S
 
+import Control.Monad.Primitive
+
+{- We lock on hashes to allow safe concurrent updates
+   of multiple entries -}
 withHash :: State -> ByteString -> (Hash -> IO a) -> IO a
 withHash state bs =
 

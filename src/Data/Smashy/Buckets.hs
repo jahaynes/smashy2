@@ -6,7 +6,6 @@ import Data.Smashy.FreeStore
 import Data.Smashy.Number
 import Data.Smashy.Types
 
-import Control.Applicative                              ((<$>))
 import Control.Monad                                    (when)
 import Control.Monad.STM                                (atomically)
 import Data.ByteString (ByteString)
@@ -29,7 +28,7 @@ get state bs =
             NotFound _ -> return Nothing
             ValueHasSizeAt szIndex -> Just <$> freezeBucketRegion bucket szIndex
     where
-    freezeBucketRegion :: Bucket -> Position -> IO ByteString
+    --freezeBucketRegion :: Bucket -> Position -> IO ByteString
     freezeBucketRegion buck@(Bucket b) p = do
         (sz, p') <- intFrom buck p
         VB.vectorToByteString <$> VS.freeze (VM.unsafeSlice p' sz b)
@@ -69,7 +68,13 @@ insert :: State -> ByteString -> Val -> IO ()
 insert state bs val =
 
     withHash state bs $ \hash -> do
+
+        putStrLn $ "Got Hash " ++ show hash
+
         hv <- readHash state hash
+
+        putStrLn $ "hv was " ++ show hv
+
         bId <-
             if hv == 0
                 then do
@@ -78,7 +83,11 @@ insert state bs val =
                     return newBucketId
                 else
                     return hv
+
+        putStrLn $ "bId was " ++ show bId
+
         let bucket = sliceBucket state bId
+
         r <- searchIn hash bucket (escapeBs bs)
         case r of
             ValueHasSizeAt _ -> error "key was already present!"
@@ -96,6 +105,7 @@ insert state bs val =
                 then error "Too big!"
                 else copy bucket bucketData 0 (VS.length bucketData)
             where
+            {- Can we use an existing function for this -}
             copy :: VM.IOVector Word8 -> VS.Vector Word8 -> Int -> Int -> IO ()
             copy target src i j
                 | i == j = VM.unsafeWrite target (offset+i) 0

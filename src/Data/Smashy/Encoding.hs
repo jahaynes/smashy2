@@ -11,6 +11,10 @@ import qualified Data.Vector.Storable.Mutable    as VM
 import qualified Data.Vector.Storable.ByteString as VB
 import Data.Word (Word8)
 
+{- Todo, the usual assortment of tricks here,
+   rewrite for bs,
+   check-before-escape is already done -}
+
 escapeBs :: ByteString -> Escaped
 escapeBs = escape . VB.byteStringToVector
 

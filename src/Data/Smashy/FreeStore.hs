@@ -17,6 +17,10 @@ takeNextFree state = do
             return nf
 
 {- Here we might optionally want to try to decrement
-the nextFreeBucket, but for now just add to free queue -}
+the nextFreeBucket, but for now just add to free queue 
+
+perhaps a heap might do the trick
+
+-}
 releaseBucketId :: State -> BucketId -> STM ()
 releaseBucketId state = writeTQueue (freeStore state)

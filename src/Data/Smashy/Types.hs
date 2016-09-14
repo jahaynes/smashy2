@@ -4,16 +4,24 @@ import Control.Concurrent.STM                       (TVar, newTVarIO)
 import Control.Concurrent.STM.TQueue                (TQueue, newTQueueIO)
 import Data.Hashable                                (Hashable, hashWithSalt)
 import Data.Vector.Storable                         (Vector)
-import Data.Vector.Storable.MMap
+--import Data.Vector.Storable.MMap
 import Data.Vector.Storable.Mutable     as VM       (IOVector, new)
 import qualified STMContainers.Set      as S        (Set, newIO)
 import Data.Word (Word8, Word32)
 
+{-Is this numRootBuckets? and should it be guaranteed to be at
+least as big as hashtable size?  
+every hashentry needs to point to a bucket
+-}
+
 numBuckets :: Int
-numBuckets = 200000
+numBuckets = 4
 
 bucketSize :: Int
-bucketSize = 1024
+bucketSize = 32
+
+hashTableStartSize :: Int
+hashTableStartSize = 4
 
 newtype Bucket = Bucket (VM.IOVector Word8)
 
@@ -31,12 +39,11 @@ data State = State {
 
 newState :: IO State
 newState = do
-    let htSize = 200000
-        buckListSize = numBuckets * bucketSize
+    let buckListSize = numBuckets * bucketSize
     resz <- newTVarIO False
-    hts <- newTVarIO htSize
-    ht <- VM.new htSize
-    --ht <- unsafeMMapMVector "./hashtable" ReadWriteEx (Just (0, htSize)) 
+    hts <- newTVarIO hashTableStartSize
+    ht <- VM.new hashTableStartSize
+    --ht <- unsafeMMapMVector "./hashtable" ReadWriteEx (Just (0, hashTableStartSize)) 
     bl <- VM.new buckListSize
     --bl <- unsafeMMapMVector "./bucketList" ReadWriteEx (Just (0, buckListSize)) 
     h <- S.newIO
